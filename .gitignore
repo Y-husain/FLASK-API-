@@ -1,4 +1,5 @@
 *.so
+migrations
 .vscode
 # Packages
 *.egg

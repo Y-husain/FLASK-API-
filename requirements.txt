@@ -1,4 +1,5 @@
 flask
+flask-bcrypt
 flask-api
 flask-cors
 flask-migrate
