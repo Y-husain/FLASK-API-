@@ -15,5 +15,10 @@ def create_app(config_name):
     app.config.from_pyfile('configurations/config.py')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
+    from app.routes.auth import auth_blueprint
+    # define the API resources
+    app.register_blueprint(auth_blueprint)
+
+    # add Rules for API Endpoints
 
     return app

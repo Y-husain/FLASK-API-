@@ -1,7 +1,7 @@
 import unittest
 import os
 from flask import current_app
-from app. import create_app
+from app import create_app
 
 
 class TestDevelopmentConfig(unittest.TestCase):
