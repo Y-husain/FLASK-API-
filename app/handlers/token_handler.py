@@ -1,33 +1,40 @@
-"""Decorator for Authentication."""
-from functools import wraps
-from flask import request
-import jwt
-import os
+"""Handles token validation"""
+from app.models.user_models import User
+from werkzeug.exceptions import HTTPException
 
 
-def token_required(f):
-    """Decorate to check if valid token present in request header."""
+class NoTokenProvided(HTTPException):
+    """ :raises: No Token provided"""
 
-    @wraps(f)
-    def wrapper(self, *args, **kwargs):
-        """Wrap the function."""
-        token = None
+    def __init__(self):
+        HTTPException.__init__(self, "Please provide an access token")
+        self.code = 499
 
-        if 'access_token' in request.headers:
-            token = request.headers['access_token']
 
-        # Verifies token is present
-        if not token:
-            return {'Message': "Unauthorized, access token required!"}, 401
-        try:
-            # try to decode using token and secret key
-            payload = jwt.decode(token, os.getenv('SECRET'))
-            current_user = payload['sub']
-        except jwt.ExpiredSignature:
-            return {'Message': 'Expired token. Please log in.'}
-        except jwt.InvalidTokenError:
-            return {'Message': 'Invalid token. Please register or log in'}
+class InvalidToken(HTTPException):
+    """
+    :raises: Invalid token provided
+    """
 
-        return f(self, current_user, *args, **kwargs)
+    def __init__(self, error):
+        HTTPException.__init__(self, str(error))
+        self.error = error
+        self.code = 498
 
-    return wrapper
+
+def assert_token(request):
+    """
+    Assert that a token was provided and is legit
+    :param request: Http request
+    :return: True else Exception
+    """
+    token = request.headers.get("Authorization")
+    if not token:
+        raise NoTokenProvided
+
+    user_id = User.decode_token(token)
+
+    if isinstance(user_id, str):
+        raise InvalidToken(user_id)
+
+    return user_id
