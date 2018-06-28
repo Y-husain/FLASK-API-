@@ -83,7 +83,7 @@ class LogoutAPI(MethodView):
             return make_response(
                 jsonify({
                     "message": "Please Provide an access token"
-                })), 499
+                })), 401
         revoked_token = BlacklistToken(revoked_token=access_token)
         revoked_token.save()
         response = {"message": "You have successfully logged out"}
