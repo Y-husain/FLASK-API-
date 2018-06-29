@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 # local import
 from app.configurations.config import app_config
+from app.handlers.error_handler import JsonExceptionHandler
 
 # initialize sql-alchemy
 db = SQLAlchemy()
@@ -20,5 +21,6 @@ def create_app(config_name):
 
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(category_blueprint)
+    JsonExceptionHandler(app)
 
     return app
