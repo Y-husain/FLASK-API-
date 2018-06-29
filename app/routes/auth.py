@@ -63,7 +63,7 @@ class LoginAPI(MethodView):
             response = {"Message": "Incorrect Email or Password"}
             return make_response(jsonify(response)), 401
         else:
-            access_token = User.generate_token(user.email)
+            access_token = User.generate_token(user.id)
             response = {
                 'message': 'You have successfully logged in',
                 "Access token": access_token.decode(),

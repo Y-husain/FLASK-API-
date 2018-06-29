@@ -1,7 +1,7 @@
 from flask import Blueprint, make_response, request, jsonify
 from flask.views import MethodView
 from app.models.categories import Category
-from app.handlers.token_handler import token_required
+from app.handlers.token_handler import assert_token
 from app import db
 
 category_blueprint = Blueprint('category', __name__)
@@ -11,15 +11,18 @@ class CategoryAPI(MethodView):
     """Categories Resource"""
 
     def post(self):
-        """Handle post request to url /categor"""
-
+        """Handle post request to url /categories"""
         post_data = request.get_json()
+        user_id = assert_token(request)
+
         check_category = Category.query.filter_by(
             name=post_data.get('name')).first()
 
         if not check_category:
             my_category = Category(
-                post_data.get("name"), post_data.get("detail"))
+                post_data.get("name"),
+                post_data.get("detail"),
+                created_by=user_id)
 
             # insert the user
             db.session.add(my_category)

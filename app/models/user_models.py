@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from flask_bcrypt import Bcrypt
+from app.models.black_list import BlacklistToken
 from app import db
 import jwt
 import os
@@ -52,19 +53,24 @@ class User(db.Model):
             return e
 
     @staticmethod
-    def decode_auth_token(auth_token):
+    def decode_token(auth_token):
         """
         Decodes the auth token
         :param auth_token:
         :return: integer|string
         """
-        try:
-            payload = jwt.decode(auth_token, os.getenv('SECRET'))
-            return payload['sub']
-        except jwt.ExpiredSignatureError:
-            return 'Signature expired. Please log in again.'
-        except jwt.InvalidTokenError:
-            return 'Invalid token. Please log in again.'
+        blacklisted = BlacklistToken.query.filter_by(
+            revoked_token=str(auth_token)).first()
+        if not blacklisted:
+            try:
+                payload = jwt.decode(auth_token, os.getenv('SECRET'))
+                return payload['sub']
+            except jwt.ExpiredSignatureError:
+                return 'Signature expired. Please log in again.'
+            except jwt.InvalidTokenError:
+                return 'Invalid token. Please log in again.'
+        else:
+            return "Invalid token provided. Please login"
 
     def __repr__(self):
         return "<User:{}>".format(self.first_name)

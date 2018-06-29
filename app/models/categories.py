@@ -9,15 +9,17 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
     detail = db.Column(db.String(100))
+    created_by = db.Column(db.Integer, db.ForeignKey(User.email))
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(
         db.DateTime,
         default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp())
 
-    def __init__(self, name, detail):
+    def __init__(self, name, detail, created_by):
         self.name = name
         self.detail = detail
+        self.created_by = created_by
 
     def save(self):
         db.session.add(self)
