@@ -138,6 +138,27 @@ class CategoryUpdate(MethodView):
                 })), 404
 
 
+class CategoryDelete(MethodView):
+    """Handle delete categories"""
+
+    def delete(self, id):
+        user_id = assert_token(request)
+        category = Category.query.filter_by(created_by=user_id).filter_by(
+            id=id).first()
+        if category:
+            category.delete()
+            return make_response(
+                jsonify({
+                    "message":
+                    'Category {} was deleted successfully'.format(category.id)
+                })), 200
+        else:
+            return make_response(
+                jsonify({
+                    "message": "Sorry Category doesnt exist?"
+                })),
+
+
 base_url = '/v1/'
 # Post
 category_post_view = CategoryAPI_POST.as_view('category_post_view')
@@ -161,3 +182,10 @@ category_blueprint.add_url_rule(
     base_url + 'categories/<int:id>',
     view_func=category_update,
     methods=["PUT"])
+
+#delete categories by ID
+category_delete = CategoryDelete.as_view("category_delete")
+category_blueprint.add_url_rule(
+    base_url + "categories/<int:id>",
+    view_func=category_delete,
+    methods=["DELETE"])
