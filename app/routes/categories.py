@@ -67,6 +67,77 @@ class CategoryAPI_GET(MethodView):
         return make_response(response), status
 
 
+class CategoryID_GET(MethodView):
+    """This class handles get request of category with id """
+
+    def get(self, id):
+        """
+        Handles get on endpoint /categories/<id>
+        :returns: 200 <ok>
+        """
+        user_id = assert_token(request)
+        category = Category.query.filter_by(created_by=user_id).filter_by(
+            id=id).first()
+        if category:
+            response = {
+                "id": category.id,
+                "Recipe Category Name": category.name,
+                "Recipe Detail": category.detail,
+                "Date created": category.date_created,
+                "Date Modified": category.date_modified
+            }
+            return make_response(jsonify(response)), 200
+        return make_response(
+            jsonify({
+                "message":
+                "The category does not exist, Would you like to create one?"
+            })), 404
+
+
+class CategoryUpdate(MethodView):
+    """Handles  update on endpoint /categories/<id>
+    :returns: 200 <ok>
+    """
+
+    def put(self, id):
+        """Handles put request"""
+        post_data = request.get_json()
+        user_id = assert_token(request)
+        get_category = Category.query.filter_by(created_by=user_id).filter_by(
+            id=id).first()
+
+        if get_category:
+
+            search_category = Category.query.filter_by(
+                created_by=user_id).filter_by(
+                    name=post_data.get("name")).first()
+
+            name_exists = bool(get_category.name == search_category.name
+                               ) if search_category else False
+
+            if not name_exists:
+                get_category.name = post_data.get("name")
+                get_category.detail = post_data.get("detail")
+                get_category.save()
+                response = jsonify({
+                    "id": get_category.id,
+                    "Recipe Category Name": get_category.name,
+                    "Recipe Detail": get_category.detail,
+                    "Date created": get_category.date_created,
+                    "Date Modified": get_category.date_modified
+                })
+                return make_response(response), 200
+            else:
+                response = jsonify({'message': 'Category already exists'})
+                return make_response(response), 400
+        else:
+            return make_response(
+                jsonify({
+                    "message":
+                    "The category does not exist, Would you like to create one?"
+                })), 404
+
+
 base_url = '/v1/'
 # Post
 category_post_view = CategoryAPI_POST.as_view('category_post_view')
@@ -76,3 +147,17 @@ category_blueprint.add_url_rule(
 category_get_view = CategoryAPI_GET.as_view('category_get_view')
 category_blueprint.add_url_rule(
     base_url + 'categories', view_func=category_get_view, methods=['GET'])
+
+# Get by id
+category_get_by_id = CategoryID_GET.as_view('category_get_by_id')
+category_blueprint.add_url_rule(
+    base_url + 'categories/<int:id>',
+    view_func=category_get_by_id,
+    methods=['GET'])
+
+#Update by id put
+category_update = CategoryUpdate.as_view('category_update')
+category_blueprint.add_url_rule(
+    base_url + 'categories/<int:id>',
+    view_func=category_update,
+    methods=["PUT"])
